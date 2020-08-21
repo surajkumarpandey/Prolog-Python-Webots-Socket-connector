@@ -1,23 +1,26 @@
 """test_control controller."""
 
-from controller import Robot, Motor
+from controller import Robot,  DistanceSensor, Motor
 import socket
 import threading 
 
-data = ""                                           #incoming data from client used as robot's heading direction        
-
-def connect():                                      #socket communication thread
-    global data
+direction = ""                                           # incoming data from client used as robot's heading direction        
+sensor_data = ""                                         # sensor data sent to the client    
+def connect():                                           #socket communication thread
+    global direction
     s = socket.socket()
     print('Socket created')
     s.bind(('localhost',9999))
     s.listen(1)
-    while(True):
-        c, addr = s.accept()
-        data = c.recv(1024)
-        print('Connected with', addr,data)
-        c.close()
-    
+    try:
+        while(True):
+            c, addr = s.accept()
+            direction = c.recv(1024)
+            print('Connected with', addr,direction)
+            c.send(sensor_data)
+            c.close()
+    finally:
+        s.close()
 
 
         
@@ -30,7 +33,16 @@ MAX_SPEED = 6.28
 # create the Robot instance.
 robot = Robot()
 
+ps = []
+psNames = [
+    'ps0', 'ps1', 'ps2', 'ps3',
+    'ps4', 'ps5', 'ps6', 'ps7'
+]
 
+for i in range(8):
+    ps.append(robot.getDistanceSensor(psNames[i]))
+    ps[i].enable(TIME_STEP)
+    
 leftMotor = robot.getMotor('left wheel motor')
 rightMotor = robot.getMotor('right wheel motor')
 leftMotor.setPosition(float('inf'))
@@ -41,22 +53,26 @@ rightMotor.setVelocity(0.0)
 left_turn = 0
 right_turn = 0
 
-def bot():                                                              #robot control thread
+def bot():                                                              # robot control thread
     while robot.step(TIME_STEP) != -1:
         
-        global data
+        global direction, sensor_data
         left_turn = 0
         right_turn = 0
         back = 0
         front = 0
         
-        if data == 'l':
+        sensor_data = ""
+        for i in range(8):
+            sensor_data += str(ps[i].getValue()) + " "                 # update the sensor data to be sent to the client   
+        
+        if direction == 'l':
             left_turn = 1
-        elif data == 'r':
+        elif direction == 'r':
             right_turn = 1
-        elif data == 'b':
+        elif direction == 'b':
             back = 1    
-        elif data == 'f':
+        elif direction == 'f':
             front = 1    
         
         
