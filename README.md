@@ -1,4 +1,4 @@
-# Prolog-Python-Webots-Socket-connector
+# Prolog-Python Socket Communication: Prolog based Webots control
 Socket communication between SWI-Prolog and Webots Python Controller
 
 Prolog based control of an e-puck robot in Webots.
