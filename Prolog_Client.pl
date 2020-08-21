@@ -1,7 +1,7 @@
 :- use_module(library(socket)).
 :- use_module(library(streampool)).
 
-create_client(Host, Port,Message) :-                        %% create a Prolog client with request to server (Host:Port) and send 'Message' to server
+move(Host, Port,Message) :-                                 %% create a Prolog client. Send request to server (Host:Port) along with 'Message' to server. This sends motion commands to the Webots Robot
         setup_call_catcher_cleanup(tcp_socket(Socket),
                                    tcp_connect(Socket, Host:Port),
                                    exception(_),
@@ -16,7 +16,7 @@ chat_to_server(In, Out,Message) :-
                 -> true;
                 format(Out,'~q',[Term]),                    %% if message is not null then write to +Out stream the +term 
                 flush_output(Out),
-                read_string(In,L,X),                        %% read the data of Input stream in X. This data is sent by server         
+                read_string(In,L,X),                        %% read the data of Input stream in X. This is the sensor data sent by the Webots server          
                 writeln(X)
         ),!.
 
