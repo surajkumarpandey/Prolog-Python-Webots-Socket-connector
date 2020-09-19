@@ -1,26 +1,38 @@
-"""test_control controller."""
+"""obstacle_avoider_server controller."""
+
 
 from controller import Robot,  DistanceSensor, Motor
 import socket
 import threading 
 
 direction = ""                                           # incoming data from client used as robot's heading direction        
-sensor_data = ""                                         # sensor data sent to the client    
+sensor_data = ""
+sensed = 0                                         	 # sensor data sent to the client    
 def connect():                                           #socket communication thread
     global direction
     s = socket.socket()
     print('Socket created')
     s.bind(('localhost',9999))
     s.listen(1)
+    con = 0
     try:
         while(True):
-            c, addr = s.accept()
-            direction = c.recv(1024)
-            print('Connected with', addr,direction)
-            c.send(sensor_data)
-            c.close()
+            if(con == 0):        
+		c, addr = s.accept()
+		con = 1
+            print(sensor_data)
+            if( sensed == 1):
+                c.sendall(sensor_data)
+                print("sent")
+                direction = c.recv(1024)
+                print('Connected with', addr,direction)
+                #c.close()
     finally:
-        s.close()
+	print("finally")
+	con = 0
+	#c.close()        
+	#s.close()
+	
 
 
         
@@ -50,21 +62,30 @@ rightMotor.setPosition(float('inf'))
 leftMotor.setVelocity(0.0)
 rightMotor.setVelocity(0.0)
 
-left_turn = 0
-right_turn = 0
+
 
 def bot():                                                              # robot control thread
     while robot.step(TIME_STEP) != -1:
         
-        global direction, sensor_data
+        global direction, sensor_data, sensed
         left_turn = 0
         right_turn = 0
         back = 0
         front = 0
         
         sensor_data = ""
+        sensed = 0
+        
+        #("sensing started")
+        
+        
         for i in range(8):
-            sensor_data += str(ps[i].getValue()) + " "                 # update the sensor data to be sent to the client   
+            sensor_data += str(ps[i].getValue()) + ","                 # update the sensor data to be sent to client   
+        sensor_data += "]"
+        sensed = 1
+        
+        #("sensing complete")
+        
         
         if direction == 'l':
             left_turn = 1
@@ -76,8 +97,8 @@ def bot():                                                              # robot 
             front = 1    
         
         
-        print(left_turn,right_turn,back,front)
-        
+        #("direction decided")
+        print(left_turn)
         if left_turn:
             leftSpeed  = -1 * MAX_SPEED
             rightSpeed = MAX_SPEED
@@ -95,20 +116,31 @@ def bot():                                                              # robot 
             leftSpeed  = 0
             rightSpeed = 0
             
+        #("speed decided")
+        
+        
         leftMotor.setVelocity(leftSpeed)
         rightMotor.setVelocity(rightSpeed)
+        
+        #("speed fed")
+        
         
 if __name__ == "__main__": 
   
     t1 = threading.Thread(target=connect, name='t1') 
     t2 = threading.Thread(target=bot, name='t2')   
-  
+      
+    print("threads made")
+          
     # starting threads 
     t1.start() 
     t2.start() 
-  
+      
+    print("threads started")
+          
     # wait until all threads finish 
     t1.join() 
     t2.join()
     
+    print("threads finished")
         
