@@ -1,17 +1,16 @@
-
-
-
 :- use_module(library(socket)).
 :- use_module(library(streampool)).
 
+create_client :-                        
+        setup_call_catcher_cleanup(tcp_socket(Socket),
+                                   tcp_connect(Socket, localhost:9999),
+                                   exception(Ex),
+                                   tcp_close_socket(Socket)),
+	setup_call_cleanup(tcp_open_socket(Socket, In, Out),
+                           chat_to_server(In, Out),
+                           close_connection(In, Out)).
+	
 
-init	:-	tcp_socket(Socket),
-                tcp_connect(Socket, localhost:9999),
-                tcp_open_socket(Socket, In, Out),
-		chat_to_server(In, Out),
-                close_connection(In, Out),
-		tcp_close_socket(Socket).
-		
 
 chat_to_server(In, Out) :-                          
 	read_string(In, "]", "", End,X),        
