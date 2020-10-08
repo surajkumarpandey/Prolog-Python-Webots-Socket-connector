@@ -1,9 +1,9 @@
 :- use_module(library(socket)).
 :- use_module(library(streampool)).
 
-create_client :-                        
+create_client(C) :-                        
         setup_call_catcher_cleanup(tcp_socket(Socket),
-                                   tcp_connect(Socket, localhost:9999),
+                                   tcp_connect(Socket, localhost:C),
                                    exception(Ex),
                                    tcp_close_socket(Socket)),
 	setup_call_cleanup(tcp_open_socket(Socket, In, Out),
