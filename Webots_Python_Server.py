@@ -22,7 +22,7 @@ def connect():                                           #socket communication t
 		con = 1
             print(sensor_data)
             if( sensed == 1):
-                c.sendall(sensor_data)
+                c.sendall(sensor_data)			# may need to use '.encode()' funtion according to python versions
                 print("sent")
                 direction = c.recv(1024)
                 print('Connected with', addr,direction)
